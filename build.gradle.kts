@@ -1,6 +1,7 @@
 plugins {
     id("java")
     id("application")
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "org.example"
@@ -11,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    implementation("io.javalin:javalin:6.3.0")
+    implementation("io.javalin:javalin:6.5.0")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
@@ -33,12 +34,12 @@ tasks.test {
     useJUnitPlatform()
 }
 
-tasks.withType<JavaExec> {
-    jvmArgs = listOf("-Dfile.encoding=UTF-8")
-}
-
 tasks.jar {
     manifest {
         attributes["Main-Class"] = "org.example.Main"
     }
+}
+
+tasks.withType<JavaExec> {
+    jvmArgs = listOf("-Dfile.encoding=UTF-8")
 }

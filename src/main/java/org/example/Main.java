@@ -8,10 +8,8 @@ import org.example.controller.TaskController;
 public class Main {
     public static void main(String[] args) {
         // Configure Jackson to ensure UTF-8 encoding
-        ObjectMapper objectMapper = new ObjectMapper();
-        Javalin app = Javalin.create(config -> {
-            config.jsonMapper(new JavalinJackson());
-        }).start(7000);
+	Javalin app = Javalin.create().start(7000);
+
 
         // Ensure UTF-8 in Content-Type header
         app.before(ctx -> ctx.header("Content-Type", "application/json; charset=UTF-8"));

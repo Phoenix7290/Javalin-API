@@ -1,0 +1,5 @@
+FROM openjdk:21-jdk-slim
+RUN apt-get update && apt-get install -y curl
+RUN curl -o /opt/h2.jar https://repo1.maven.org/maven2/com/h2database/h2/2.3.230/h2-2.3.230.jar
+EXPOSE 8082 9092
+CMD ["java", "-cp", "/opt/h2.jar", "org.h2.tools.Server", "-tcp", "-tcpAllowOthers", "-ifNotExists"]
