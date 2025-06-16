@@ -1,15 +1,17 @@
 package org.example.controller;
 
 import io.javalin.http.Context;
-import org.example.model.User;
+import org.example.model.Task;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class UserController {
-    private static final List<User> users = new ArrayList<>();
+public class TaskController {
+    private static final EntityManagerFactory emf = Persistence.createEntityManagerFactory("h2-pu");
 
     public static void getHello(Context ctx) {
         ctx.status(200).result("Hello, Javalin!");
@@ -28,40 +30,58 @@ public class UserController {
         }
     }
 
-    // Endpoint /saudacao/{nome}
     public static void getSaudacao(Context ctx) {
         String nome = ctx.pathParam("nome");
         ctx.json(new SaudacaoResponse("Olá, " + nome + "!"));
     }
 
-    public static void createUser(Context ctx) {
+    public static void createTask(Context ctx) {
+        EntityManager em = emf.createEntityManager();
         try {
-            User user = ctx.bodyAsClass(User.class);
-            user.setId(UUID.randomUUID().toString());
-            users.add(user);
-            ctx.status(201).json(user);
+            Task task = ctx.bodyAsClass(Task.class);
+            if (task.getTitulo() == null || task.getTitulo().isEmpty()) {
+                ctx.status(400).json(new ErrorResponse("Título é obrigatório"));
+                return;
+            }
+            task.setId(UUID.randomUUID().toString());
+            task.setDataCriacao(Instant.now().toString());
+            em.getTransaction().begin();
+            em.persist(task);
+            em.getTransaction().commit();
+            ctx.status(201).json(task);
         } catch (Exception e) {
-            ctx.status(400).json(new ErrorResponse("Invalid user data"));
+            ctx.status(400).json(new ErrorResponse("Dados inválidos"));
+        } finally {
+            em.close();
         }
     }
 
-    public static void getAllUsers(Context ctx) {
-        ctx.json(users);
-    }
-
-    public static void getUserById(Context ctx) {
-        String id = ctx.pathParam("id");
-        User user = users.stream()
-                .filter(u -> u.getId().equals(id))
-                .findFirst()
-                .orElse(null);
-        if (user != null) {
-            ctx.json(user);
-        } else {
-            ctx.status(404).json(new ErrorResponse("User not found"));
+    public static void getAllTasks(Context ctx) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            List<Task> tasks = em.createQuery("SELECT t FROM Task t", Task.class).getResultList();
+            ctx.json(tasks);
+        } finally {
+            em.close();
         }
     }
 
+    public static void getTaskById(Context ctx) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            String id = ctx.pathParam("id");
+            Task task = em.find(Task.class, id);
+            if (task != null) {
+                ctx.json(task);
+            } else {
+                ctx.status(404).json(new ErrorResponse("Tarefa não encontrada"));
+            }
+        } finally {
+            em.close();
+        }
+    }
+
+    // Classes auxiliares adicionadas
     private static class StatusResponse {
         private String status;
         private String timestamp;

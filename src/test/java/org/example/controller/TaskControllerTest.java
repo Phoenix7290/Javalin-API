@@ -3,7 +3,6 @@ package org.example.controller;
 import io.javalin.Javalin;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import org.example.Main;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -11,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
-public class UserControllerTest {
+public class TaskControllerTest {
     private static Javalin app;
 
     @BeforeAll

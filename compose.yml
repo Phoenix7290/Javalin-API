@@ -1,0 +1,33 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: todo-api
+    ports:
+      - "7000:7000"
+    depends_on:
+      - db
+    environment:
+      - JAVA_OPTS=-Xmx512m -Xms256m
+    networks:
+      - todo-network
+
+  db:
+    image: oscarfonts/h2:latest
+    ports:
+      - "8082:8082"
+      - "9092:9092"
+    environment:
+      - H2_OPTIONS=-tcp -tcpAllowOthers -ifNotExists
+    volumes:
+      - h2-data:/opt/h2-data
+    networks:
+      - todo-network
+
+volumes:
+  h2-data:
+
+networks:
+  todo-network:
+    driver: bridge

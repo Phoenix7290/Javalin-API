@@ -1,22 +1,22 @@
 package org.example;
 
 import io.javalin.Javalin;
-import org.example.controller.UserController;
+import org.example.controller.TaskController;
 
 public class Main {
     public static void main(String[] args) {
         Javalin app = Javalin.create().start(7000);
 
-        app.get("/hello", UserController::getHello);
-        app.get("/status", UserController::getStatus);
-        app.post("/echo", UserController::postEcho);
-        app.get("/saudacao/{nome}", UserController::getSaudacao);
-        app.post("/users", UserController::createUser);
-        app.get("/users", UserController::getAllUsers);
-        app.get("/users/{id}", UserController::getUserById);
+        app.get("/hello", TaskController::getHello);
+        app.get("/status", TaskController::getStatus);
+        app.post("/echo", TaskController::postEcho);
+        app.get("/saudacao/{nome}", TaskController::getSaudacao);
+        app.post("/tarefas", TaskController::createTask);
+        app.get("/tarefas", TaskController::getAllTasks);
+        app.get("/tarefas/{id}", TaskController::getTaskById);
 
         app.exception(Exception.class, (e, ctx) -> {
-            ctx.status(500).json(new ErrorResponse("Internal server error: " + e.getMessage()));
+            ctx.status(500).json(new ErrorResponse("Erro interno: " + e.getMessage()));
         });
     }
 
