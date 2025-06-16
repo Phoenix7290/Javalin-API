@@ -16,13 +16,13 @@ public class TaskControllerTest {
     @BeforeAll
     public static void setup() {
         app = Javalin.create().start(7000);
-        app.get("/hello", UserController::getHello);
-        app.get("/status", UserController::getStatus);
-        app.post("/echo", UserController::postEcho);
-        app.get("/saudacao/{nome}", UserController::getSaudacao);
-        app.post("/users", UserController::createUser);
-        app.get("/users", UserController::getAllUsers);
-        app.get("/users/{id}", UserController::getUserById);
+        app.get("/hello", TaskController::getHello);
+        app.get("/status", TaskController::getStatus);
+        app.post("/echo", TaskController::postEcho);
+        app.get("/saudacao/{nome}", TaskController::getSaudacao);
+        app.post("/tarefas", TaskController::createTask);
+        app.get("/tarefas", TaskController::getAllTasks);
+        app.get("/tarefas/{id}", TaskController::getTaskById);
         RestAssured.baseURI = "http://localhost:7000";
     }
 
@@ -42,57 +42,103 @@ public class TaskControllerTest {
     }
 
     @Test
-    public void testCreateUser() {
-        String userJson = "{\"nome\":\"Joao\",\"email\":\"joao@example.com\",\"idade\":25}";
+    public void testStatusEndpoint() {
         given()
-                .contentType(ContentType.JSON)
-                .body(userJson)
                 .when()
-                .post("/users")
+                .get("/status")
                 .then()
-                .statusCode(201)
-                .body("nome", equalTo("Joao"))
-                .body("email", equalTo("joao@example.com"))
-                .body("idade", equalTo(25));
+                .statusCode(200)
+                .body("status", equalTo("ok"));
     }
 
     @Test
-    public void testGetUserById() {
-        String userJson = "{\"nome\":\"Maria\",\"email\":\"maria@example.com\",\"idade\":30}";
+    public void testEchoEndpoint() {
+        String echoJson = "{\"mensagem\":\"Teste de eco\"}";
+        given()
+                .contentType(ContentType.JSON)
+                .body(echoJson)
+                .when()
+                .post("/echo")
+                .then()
+                .statusCode(200)
+                .body("mensagem", equalTo("Teste de eco"));
+    }
+
+    @Test
+    public void testSaudacaoEndpoint() {
+        given()
+                .when()
+                .get("/saudacao/Marcos")
+                .then()
+                .statusCode(200)
+                .body("mensagem", equalTo("Olá, Marcos!"));
+    }
+
+    @Test
+    public void testCreateTask() {
+        String taskJson = "{\"titulo\":\"Estudar Java\",\"descricao\":\"Revisar Javalin\"}";
+        given()
+                .contentType(ContentType.JSON)
+                .body(taskJson)
+                .when()
+                .post("/tarefas")
+                .then()
+                .statusCode(201)
+                .body("titulo", equalTo("Estudar Java"))
+                .body("descricao", equalTo("Revisar Javalin"))
+                .body("concluida", equalTo(false));
+    }
+
+    @Test
+    public void testGetTaskById() {
+        String taskJson = "{\"titulo\":\"Tarefa Teste\",\"descricao\":\"Testar endpoint\"}";
         String id = given()
                 .contentType(ContentType.JSON)
-                .body(userJson)
+                .body(taskJson)
                 .when()
-                .post("/users")
+                .post("/tarefas")
                 .then()
                 .extract()
                 .path("id");
 
         given()
                 .when()
-                .get("/users/" + id)
+                .get("/tarefas/" + id)
                 .then()
                 .statusCode(200)
-                .body("nome", equalTo("Maria"))
-                .body("email", equalTo("maria@example.com"))
-                .body("idade", equalTo(30));
+                .body("titulo", equalTo("Tarefa Teste"))
+                .body("descricao", equalTo("Testar endpoint"))
+                .body("concluida", equalTo(false));
     }
 
     @Test
-    public void testGetAllUsers() {
-        String userJson = "{\"nome\":\"Ana\",\"email\":\"ana@example.com\",\"idade\":22}";
+    public void testGetAllTasks() {
+        String taskJson = "{\"titulo\":\"Tarefa Lista\",\"descricao\":\"Verificar listagem\"}";
         given()
                 .contentType(ContentType.JSON)
-                .body(userJson)
+                .body(taskJson)
                 .when()
-                .post("/users");
+                .post("/tarefas");
 
         given()
                 .when()
-                .get("/users")
+                .get("/tarefas")
                 .then()
                 .statusCode(200)
                 .body("size()", equalTo(1))
-                .body("[0].nome", equalTo("Ana"));
+                .body("[0].titulo", equalTo("Tarefa Lista"));
+    }
+
+    @Test
+    public void testCreateTaskWithMissingTitle() {
+        String taskJson = "{\"descricao\":\"Tarefa sem título\"}";
+        given()
+                .contentType(ContentType.JSON)
+                .body(taskJson)
+                .when()
+                .post("/tarefas")
+                .then()
+                .statusCode(400)
+                .body("error", equalTo("Título é obrigatório"));
     }
 }
