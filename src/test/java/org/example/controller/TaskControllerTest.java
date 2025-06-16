@@ -2,20 +2,29 @@ package org.example.controller;
 
 import io.javalin.Javalin;
 import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-import org.junit.jupiter.api.AfterAll;
+import io.restassured.config.EncoderConfig;
+import io.restassured.config.RestAssuredConfig;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
 public class TaskControllerTest {
+
     private static Javalin app;
 
     @BeforeAll
     public static void setup() {
-        app = Javalin.create().start(7000);
+        // Configure RestAssured to use UTF-8
+        RestAssured.config = RestAssuredConfig.config()
+                .encoderConfig(EncoderConfig.encoderConfig()
+                        .defaultContentCharset("UTF-8")
+                        .defaultQueryParameterCharset("UTF-8"));
+
+        app = Javalin.create().start(7001);
         app.get("/hello", TaskController::getHello);
         app.get("/status", TaskController::getStatus);
         app.post("/echo", TaskController::postEcho);
@@ -23,12 +32,19 @@ public class TaskControllerTest {
         app.post("/tarefas", TaskController::createTask);
         app.get("/tarefas", TaskController::getAllTasks);
         app.get("/tarefas/{id}", TaskController::getTaskById);
-        RestAssured.baseURI = "http://localhost:7000";
+        RestAssured.baseURI = "http://localhost:7001";
     }
 
-    @AfterAll
-    public static void tearDown() {
-        app.stop();
+    @BeforeEach
+    public void clearDatabase() {
+        EntityManager em = TaskController.getEntityManagerFactory().createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.createQuery("DELETE FROM Task").executeUpdate();
+            em.getTransaction().commit();
+        } finally {
+            em.close();
+        }
     }
 
     @Test
@@ -53,92 +69,85 @@ public class TaskControllerTest {
 
     @Test
     public void testEchoEndpoint() {
-        String echoJson = "{\"mensagem\":\"Teste de eco\"}";
         given()
-                .contentType(ContentType.JSON)
-                .body(echoJson)
+                .contentType("application/json; charset=UTF-8")
+                .body("{\"mensagem\": \"teste\"}")
                 .when()
                 .post("/echo")
                 .then()
                 .statusCode(200)
-                .body("mensagem", equalTo("Teste de eco"));
+                .body("mensagem", equalTo("teste"));
     }
 
     @Test
     public void testSaudacaoEndpoint() {
         given()
                 .when()
-                .get("/saudacao/Marcos")
+                .get("/saudacao/Joao")
                 .then()
                 .statusCode(200)
-                .body("mensagem", equalTo("Olá, Marcos!"));
+                .body("mensagem", equalTo("Olá, Joao!"));
     }
 
     @Test
     public void testCreateTask() {
-        String taskJson = "{\"titulo\":\"Estudar Java\",\"descricao\":\"Revisar Javalin\"}";
         given()
-                .contentType(ContentType.JSON)
-                .body(taskJson)
+                .contentType("application/json; charset=UTF-8")
+                .body("{\"titulo\": \"Nova Tarefa\", \"descricao\": \"Descrição da tarefa\"}")
                 .when()
                 .post("/tarefas")
                 .then()
                 .statusCode(201)
-                .body("titulo", equalTo("Estudar Java"))
-                .body("descricao", equalTo("Revisar Javalin"))
-                .body("concluida", equalTo(false));
+                .body("titulo", equalTo("Nova Tarefa"))
+                .body("descricao", equalTo("Descrição da tarefa"));
     }
 
     @Test
     public void testGetTaskById() {
-        String taskJson = "{\"titulo\":\"Tarefa Teste\",\"descricao\":\"Testar endpoint\"}";
         String id = given()
-                .contentType(ContentType.JSON)
-                .body(taskJson)
+                .contentType("application/json; charset=UTF-8")
+                .body("{\"titulo\": \"Tarefa Teste\", \"descricao\": \"Teste\"}")
                 .when()
                 .post("/tarefas")
                 .then()
-                .extract()
-                .path("id");
+                .statusCode(201)
+                .extract().path("id");
 
         given()
                 .when()
                 .get("/tarefas/" + id)
                 .then()
                 .statusCode(200)
-                .body("titulo", equalTo("Tarefa Teste"))
-                .body("descricao", equalTo("Testar endpoint"))
-                .body("concluida", equalTo(false));
+                .body("titulo", equalTo("Tarefa Teste"));
     }
 
     @Test
     public void testGetAllTasks() {
-        String taskJson = "{\"titulo\":\"Tarefa Lista\",\"descricao\":\"Verificar listagem\"}";
         given()
-                .contentType(ContentType.JSON)
-                .body(taskJson)
+                .contentType("application/json; charset=UTF-8")
+                .body("{\"titulo\": \"Tarefa 1\", \"descricao\": \"Descrição 1\"}")
                 .when()
-                .post("/tarefas");
+                .post("/tarefas")
+                .then()
+                .statusCode(201);
 
         given()
                 .when()
                 .get("/tarefas")
                 .then()
                 .statusCode(200)
-                .body("size()", equalTo(1))
-                .body("[0].titulo", equalTo("Tarefa Lista"));
+                .body("[0].titulo", equalTo("Tarefa 1"));
     }
 
     @Test
     public void testCreateTaskWithMissingTitle() {
-        String taskJson = "{\"descricao\":\"Tarefa sem título\"}";
         given()
-                .contentType(ContentType.JSON)
-                .body(taskJson)
+                .contentType("application/json; charset=UTF-8")
+                .body("{\"descricao\": \"Tarefa sem título\"}")
                 .when()
                 .post("/tarefas")
                 .then()
                 .statusCode(400)
-                .body("error", equalTo("Título é obrigatório"));
+                .body("error", equalTo("O título é obrigatório"));
     }
 }

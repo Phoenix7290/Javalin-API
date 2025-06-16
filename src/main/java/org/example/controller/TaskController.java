@@ -11,7 +11,11 @@ import java.util.List;
 import java.util.UUID;
 
 public class TaskController {
-    private static final EntityManagerFactory emf = Persistence.createEntityManagerFactory("h2-pu");
+    static final EntityManagerFactory emf = Persistence.createEntityManagerFactory("h2-pu");
+
+    public static EntityManagerFactory getEntityManagerFactory() {
+        return emf;
+    }
 
     public static void getHello(Context ctx) {
         ctx.status(200).result("Hello, Javalin!");
@@ -40,7 +44,7 @@ public class TaskController {
         try {
             Task task = ctx.bodyAsClass(Task.class);
             if (task.getTitulo() == null || task.getTitulo().isEmpty()) {
-                ctx.status(400).json(new ErrorResponse("Título é obrigatório"));
+                ctx.status(400).json(new ErrorResponse("O título é obrigatório"));
                 return;
             }
             task.setId(UUID.randomUUID().toString());

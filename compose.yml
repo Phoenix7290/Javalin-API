@@ -9,10 +9,9 @@ services:
     depends_on:
       - db
     environment:
-      - JAVA_OPTS=-Xmx512m -Xms256m
+      - JAVA_OPTS=-Xmx512m -Xms256m -Dfile.encoding=UTF-8
     networks:
       - todo-network
-
   db:
     image: oscarfonts/h2:latest
     ports:
@@ -24,10 +23,8 @@ services:
       - h2-data:/opt/h2-data
     networks:
       - todo-network
-
 volumes:
   h2-data:
-
 networks:
   todo-network:
     driver: bridge

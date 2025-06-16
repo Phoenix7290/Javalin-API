@@ -33,6 +33,10 @@ tasks.test {
     useJUnitPlatform()
 }
 
+tasks.withType<JavaExec> {
+    jvmArgs = listOf("-Dfile.encoding=UTF-8")
+}
+
 tasks.jar {
     manifest {
         attributes["Main-Class"] = "org.example.Main"
