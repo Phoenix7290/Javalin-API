@@ -9,6 +9,7 @@ import jakarta.persistence.Persistence;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.Arrays;
 
 public class TaskController {
     static final EntityManagerFactory emf = Persistence.createEntityManagerFactory("h2-pu");
@@ -85,7 +86,21 @@ public class TaskController {
         }
     }
 
-    // Classes auxiliares adicionadas
+    public static void getApiHelp(Context ctx) {
+        List<EndpointInfo> endpoints = Arrays.asList(
+                new EndpointInfo("GET", "/", "Retorna uma lista de todos os endpoints disponíveis na API.", null),
+                new EndpointInfo("GET", "/hello", "Retorna uma mensagem simples: 'Hello, Javalin'.", null),
+                new EndpointInfo("GET", "/status", "Retorna um status da API e data/hora.", null),
+                new EndpointInfo("POST", "/echo", "Retorna de volta o JSON fornecido.", "{\"mensagem\": \"teste\"}"),
+                new EndpointInfo("GET", "/saudacao/{nome}", "Retorna uma saudação personalizada para o nome fornecido.", null),
+                new EndpointInfo("POST", "/tarefas", "Cria uma nova tarefa.", "{\"titulo\": \"Nova Tarefa\", \"descricao\": \"Descrição\"}"),
+                new EndpointInfo("GET", "/tarefas", "Retorna todas as tarefas.", null),
+                new EndpointInfo("GET", "/tarefas/{id}", "Retorna uma tarefa usando o ID correspondente.", null)
+        );
+        ctx.json(new ApiHelpResponse("Todos os endpoints disponíveis.", endpoints));
+    }
+
+    // Classes auxiliares
     private static class StatusResponse {
         private String status;
         private String timestamp;
@@ -137,6 +152,54 @@ public class TaskController {
 
         public String getError() {
             return error;
+        }
+    }
+
+    private static class EndpointInfo {
+        private String method;
+        private String path;
+        private String description;
+        private String exampleRequest;
+
+        public EndpointInfo(String method, String path, String description, String exampleRequest) {
+            this.method = method;
+            this.path = path;
+            this.description = description;
+            this.exampleRequest = exampleRequest;
+        }
+
+        public String getMethod() {
+            return method;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public String getExampleRequest() {
+            return exampleRequest;
+        }
+    }
+
+    private static class ApiHelpResponse {
+        private String message;
+        private List<EndpointInfo> endpoints;
+
+        public ApiHelpResponse(String message, List<EndpointInfo> endpoints) {
+            this.message = message;
+            this.endpoints = endpoints;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public List<EndpointInfo> getEndpoints() {
+            return endpoints;
         }
     }
 }

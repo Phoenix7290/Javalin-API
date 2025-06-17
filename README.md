@@ -1,4 +1,4 @@
-# Javalin-API
+# ToDo-API
 
 ## Overview
 This project is an academic assessment developed as part of a course to explore RESTful API development using lightweight Java technologies. The goal was to build a simple, yet functional, To-Do API using **Javalin**, a minimalistic web framework, to understand core web development concepts without relying on heavier frameworks like Spring Boot. The API manages tasks with basic CRUD operations, uses an **H2 in-memory database** for persistence, and is containerized with **Docker** for easy deployment.
@@ -12,6 +12,7 @@ The application is deployed and accessible at [http://todo-api.marcosryan.online
 - **Dockerized Deployment**: Containerized setup for consistent development and production environments.
 - **Unit Testing**: Comprehensive tests using JUnit and REST Assured to ensure reliability.
 - **UTF-8 Support**: Proper handling of internationalization with consistent encoding.
+- **API Documentation**: A help endpoint (`/`) listing all available endpoints.
 
 ## Prerequisites
 - **Java 21** or higher
@@ -54,19 +55,48 @@ The application is deployed and accessible at [http://todo-api.marcosryan.online
 ## Endpoints
 The API provides the following endpoints, accessible at `http://todo-api.marcosryan.online:7000`:
 
-| Method | Endpoint            | Description                              |
-|--------|---------------------|------------------------------------------|
-| GET    | `/hello`            | Returns a simple "Hello, Javalin!" message. |
-| GET    | `/status`           | Returns the API status and timestamp.    |
-| POST   | `/echo`             | Echoes back the provided JSON payload.   |
-| GET    | `/saudacao/{nome}`  | Returns a personalized greeting.         |
-| POST   | `/tarefas`          | Creates a new task.                      |
-| GET    | `/tarefas`          | Retrieves all tasks.                     |
-| GET    | `/tarefas/{id}`     | Retrieves a task by ID.                  |
+| Method | Endpoint           | Description                                    |
+|--------|--------------------|------------------------------------------------|
+| GET    | `/`                | Returns a list of all available API endpoints. |
+| GET    | `/hello`           | Returns a simple "Hello, Javalin!" message.    |
+| GET    | `/status`          | Returns the API status and timestamp.          |
+| POST   | `/echo`            | Echoes back the provided JSON payload.         |
+| GET    | `/saudacao/{nome}` | Returns a personalized greeting.               |
+| POST   | `/tarefas`         | Creates a new task.                            |
+| GET    | `/tarefas`         | Retrieves all tasks.                           |
+| GET    | `/tarefas/{id}`    | Retrieves a task by ID.                        |
+
+**Example Request (API Help)**:
+
+```bash
+curl https://todo-api.marcosryan.online/
+```
+
+**Example Response**:
+```json
+{
+  "message": "Available API Endpoints",
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/",
+      "description": "Returns a list of all available API endpoints.",
+      "exampleRequest": null
+    },
+    {
+      "method": "GET",
+      "path": "/hello",
+      "description": "Returns a simple 'Hello, Javalin!' message.",
+      "exampleRequest": null
+    }
+  ]
+}
+```
 
 **Example Request (Create Task)**:
+
 ```bash
-curl -X POST http://todo-api.marcosryan.online:7000/tarefas \
+curl -X POST https://todo-api.marcosryan.online:7000/tarefas \
 -H "Content-Type: application/json" \
 -d '{"titulo":"Nova Tarefa","descricao":"Descrição da tarefa"}'
 ```
@@ -96,23 +126,23 @@ curl -X POST http://todo-api.marcosryan.online:7000/tarefas \
    ```
 
 3. **Run with Docker**:
-   - Ensure Docker is running.
-   - Start the application and H2 database:
-     ```bash
-     docker-compose -f compose.yml up --build
-     ```
-   - The API will be available at `http://localhost:7000`.
-   - The H2 database will be accessible at `tcp://localhost:9092`.
+    - Ensure Docker is running.
+    - Start the application and H2 database:
+      ```bash
+      docker-compose -f compose.yml up --build
+      ```
+    - The API will be available at `http://localhost:7000`.
+    - The H2 database will be accessible at `tcp://localhost:9092`.
 
 4. **Run Without Docker**:
-   - Start the H2 database server manually (optional, for local persistence):
-     ```bash
-     java -cp h2-2.3.230.jar org.h2.tools.Server -tcp -tcpAllowOthers -ifNotExists
-     ```
-   - Run the application:
-     ```bash
-     ./gradlew run
-     ```
+    - Start the H2 database server manually (optional, for local persistence):
+      ```bash
+      java -cp h2-2.3.230.jar org.h2.tools.Server -tcp -tcpAllowOthers -ifNotExists
+      ```
+    - Run the application:
+      ```bash
+      ./gradlew run
+      ```
 
 5. **Run Tests**:
    ```bash

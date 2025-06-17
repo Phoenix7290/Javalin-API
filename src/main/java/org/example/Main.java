@@ -12,6 +12,7 @@ public class Main {
         // Ensure UTF-8 in Content-Type header
         app.before(ctx -> ctx.header("Content-Type", "application/json; charset=UTF-8"));
 
+        app.get("/", TaskController::getApiHelp);
         app.get("/hello", TaskController::getHello);
         app.get("/status", TaskController::getStatus);
         app.post("/echo", TaskController::postEcho);
